@@ -1,0 +1,126 @@
+{% extends "bookapp/base.html" %}
+
+{% block title %}Books{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h2 style="font-weight:600; font-size:20px;">Book Collection</h2>
+
+        {% if perms.bookapp.add_book %}
+            <a href="{% url 'bookapp:book_form' %}" class="btn btn-primary">
+                + Add Book
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Search -->
+    <form method="get" style="margin-bottom:30px; display:flex; gap:12px;">
+        <input type="text"
+               name="search"
+               placeholder="Search by title..."
+               value="{{ search|default:'' }}"
+               style="flex:1;">
+
+        <button type="submit" class="btn">
+            Search
+        </button>
+    </form>
+
+    <!-- Table -->
+    <table>
+        <thead>
+            <tr>
+                <th><a href="?order=title" style="color:inherit;">Title</a></th>
+                <th><a href="?order=pages" style="color:inherit;">Pages</a></th>
+                <th><a href="?order=rating" style="color:inherit;">Rating</a></th>
+                <th><a href="?order=status" style="color:inherit;">Status</a></th>
+                <th><a href="?order=published_date" style="color:inherit;">Published</a></th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for book in page_obj %}
+                <tr>
+                    <td>
+                        <a href="{% url 'bookapp:book_detail' book.id %}"
+                           style="font-weight:500; color:var(--accent); text-decoration:none;">
+                            {{ book.title }}
+                        </a>
+                    </td>
+
+                    <td>{{ book.pages }}</td>
+
+                    <td>
+                        {% if book.rating %}
+                            ★ {{ book.rating }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="badge">
+                            {{ book.status }}
+                        </span>
+                    </td>
+
+                    <td>{{ book.published_date }}</td>
+
+                    <td style="display:flex; gap:8px;">
+                        <a href="{% url 'bookapp:book_detail' book.id %}" class="btn">
+                            View
+                        </a>
+
+                        {% if perms.bookapp.change_book %}
+                            <a href="{% url 'bookapp:book_edit' book.id %}" class="btn">
+                                Edit
+                            </a>
+                        {% endif %}
+
+                        {% if perms.bookapp.delete_book %}
+                            <a href="{% url 'bookapp:book_delete' book.id %}" class="btn btn-danger">
+                                Delete
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary);">
+                        No books found.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<!-- Pagination -->
+<div style="text-align:center; margin-top:40px;">
+
+    {% if page_obj.has_previous %}
+        <a class="btn"
+           href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if order %}&order={{ order }}{% endif %}">
+            Previous
+        </a>
+    {% endif %}
+
+    <span style="margin:0 20px; color:var(--text-secondary);">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+        <a class="btn"
+           href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if order %}&order={{ order }}{% endif %}">
+            Next
+        </a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

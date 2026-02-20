@@ -17,16 +17,26 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path('', lambda request: HttpResponse("Home OK")),
+    # Home simple
+    path('', lambda request: HttpResponse("Home OK"), name="home"),
+
+    # Admin
     path('admin/', admin.site.urls),
 
-    # login/logout automático
+    # Login / Logout automáticos
     path('accounts/', include('django.contrib.auth.urls')),
 
-    path('bookapp/', include('bookapp.urls')),
+    # BookApp (con namespace)
+    path('bookapp/', include(('bookapp.urls', 'bookapp'), namespace='bookapp')),
 ]
+
+# Servir archivos media en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

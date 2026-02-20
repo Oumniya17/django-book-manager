@@ -1,10 +1,11 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from .models import Book
 
 
 class BookForm(forms.ModelForm):
 
-    # Sobrescribimos el campo title para controlar mensajes
+    # Sobrescribimos title para controlar mensajes personalizados
     title = forms.CharField(
         max_length=50,
         required=True,
@@ -16,9 +17,18 @@ class BookForm(forms.ModelForm):
 
     class Meta:
         model = Book
-        fields = "__all__"
+        fields = [
+            "title",
+            "pages",
+            "rating",
+            "status",
+            "published_date",
+            "read_date",
+            "authors",
+            "cover_image",
+        ]
 
-    # validación de fechas en el formulario (para que aparezca en form.errors)
+    # Validación de fechas en el formulario
     def clean(self):
         cleaned_data = super().clean()
 
@@ -26,9 +36,8 @@ class BookForm(forms.ModelForm):
         read = cleaned_data.get("read_date")
 
         if read and published and read < published:
-            self.add_error(
-                "read_date",
-                "The read date must be after the published date"
+            raise ValidationError(
+                {"read_date": "The read date must be after the published date"}
             )
 
         return cleaned_data

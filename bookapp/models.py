@@ -21,19 +21,22 @@ class Book(models.Model):
 
     title = models.CharField(max_length=50)
 
-    # BUG FIX: mínimo 1 página
+    # mínimo 1 página
     pages = models.PositiveIntegerField(
         validators=[MinValueValidator(1)]
     )
 
-    # BUG FIX: rating entre 1 y 5
+    # rating opcional entre 1 y 5
     rating = models.IntegerField(
         null=True,
         blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES
+    )
 
     published_date = models.DateField()
     read_date = models.DateField(null=True, blank=True)
@@ -46,11 +49,12 @@ class Book(models.Model):
         blank=True
     )
 
-    # validación pedida en el enunciado
     def clean(self):
+        super().clean()
+
         if self.read_date and self.read_date < self.published_date:
             raise ValidationError(
-                "The read date must be after the published date"
+                {"read_date": "The read date must be after the published date"}
             )
 
     def __str__(self):

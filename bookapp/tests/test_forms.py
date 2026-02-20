@@ -2,11 +2,11 @@ from django.test import TestCase
 from datetime import date
 from django.core.files.uploadedfile import SimpleUploadedFile
 from bookapp.forms import BookForm
+from bookapp.models import Author, Book
 
 
 class BookFormTests(TestCase):
 
-    # datos válidos reutilizables
     def valid_data(self):
         return {
             "title": "Libro",
@@ -16,12 +16,20 @@ class BookFormTests(TestCase):
             "published_date": date.today(),
         }
 
-    # creación correcta
+    # Creación correcta (sin autores y sin portada)
     def test_valid_form(self):
         form = BookForm(data=self.valid_data())
         self.assertTrue(form.is_valid())
 
-    # título demasiado largo
+        book = form.save()
+
+        self.assertEqual(Book.objects.count(), 1)
+        self.assertEqual(book.title, "Libro")
+        self.assertEqual(book.pages, 50)
+        self.assertEqual(book.rating, 3)
+        self.assertEqual(book.status, "Pending")
+
+    # Título demasiado largo
     def test_title_too_long(self):
         data = self.valid_data()
         data["title"] = "a" * 51
@@ -34,7 +42,7 @@ class BookFormTests(TestCase):
             form.errors["title"]
         )
 
-    # título vacío
+    # Título vacío
     def test_title_empty(self):
         data = self.valid_data()
         data["title"] = ""
@@ -47,7 +55,7 @@ class BookFormTests(TestCase):
             form.errors["title"]
         )
 
-    # páginas inválidas
+    # Páginas inválidas
     def test_invalid_pages(self):
         data = self.valid_data()
         data["pages"] = 0
@@ -56,7 +64,7 @@ class BookFormTests(TestCase):
 
         self.assertFalse(form.is_valid())
 
-    # rating inválido
+    # Rating inválido
     def test_invalid_rating(self):
         data = self.valid_data()
         data["rating"] = 10
@@ -65,14 +73,16 @@ class BookFormTests(TestCase):
 
         self.assertFalse(form.is_valid())
 
-    # EXTRA PRO → rating opcional
+    # Rating opcional
     def test_rating_optional(self):
         data = self.valid_data()
         data["rating"] = ""
 
         form = BookForm(data=data)
-
         self.assertTrue(form.is_valid())
+
+        book = form.save()
+        self.assertIsNone(book.rating)
 
     # read_date antes de published_date
     def test_invalid_read_date(self):
@@ -88,7 +98,22 @@ class BookFormTests(TestCase):
             form.errors["read_date"]
         )
 
-    # con portada (imagen válida real para Pillow)
+    # Con autor
+    def test_with_author(self):
+        author = Author.objects.create(name="John", last_name="Doe")
+
+        data = self.valid_data()
+        data["authors"] = [author.id]
+
+        form = BookForm(data=data)
+        self.assertTrue(form.is_valid())
+
+        book = form.save()
+
+        self.assertEqual(book.authors.count(), 1)
+        self.assertEqual(book.authors.first().name, "John")
+
+    # Con portada
     def test_with_cover(self):
         image_content = (
             b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00'
@@ -105,5 +130,8 @@ class BookFormTests(TestCase):
         }
 
         form = BookForm(data=self.valid_data(), files=file_data)
-
         self.assertTrue(form.is_valid())
+
+        book = form.save()
+
+        self.assertTrue(book.cover_image.name.startswith("covers/"))

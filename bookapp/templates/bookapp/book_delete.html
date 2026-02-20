@@ -1,0 +1,30 @@
+{% extends "bookapp/base.html" %}
+
+{% block title %}Delete Book{% endblock %}
+
+{% block content %}
+
+<div class="card" style="max-width:600px; margin:0 auto; text-align:center;">
+    <h2 style="margin-bottom:25px;">⚠️ Delete Book</h2>
+
+    <p style="margin-bottom:30px; color:var(--text-secondary);">
+        Are you sure you want to delete
+        <strong>"{{ book.title }}"</strong>?
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div style="display:flex; justify-content:center; gap:20px;">
+            <button type="submit" class="btn btn-danger">
+                Yes, Delete
+            </button>
+
+            <a href="{% url 'bookapp:book_detail' book.id %}" class="btn">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

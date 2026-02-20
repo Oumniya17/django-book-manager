@@ -1,0 +1,121 @@
+{% extends "bookapp/base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <div>
+            <h2 style="margin-bottom:6px;">{{ book.title }}</h2>
+            <div style="color:#6b7280; font-size:14px;">
+                {% if book.authors.all %}
+                    {% for author in book.authors.all %}
+                        {{ author.name }} {{ author.last_name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    No authors
+                {% endif %}
+            </div>
+        </div>
+
+        <span class="badge {{ book.status }}">
+            {{ book.status }}
+        </span>
+    </div>
+
+    <!-- Content Grid -->
+    <div style="display:grid; grid-template-columns: 1fr 300px; gap:40px;">
+
+        <!-- Left Info -->
+        <div>
+
+            <div style="margin-bottom:20px;">
+                <strong>Pages:</strong>
+                <span style="margin-left:8px;">{{ book.pages }}</span>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <strong>Rating:</strong>
+                <span style="margin-left:8px;">
+                    {% if book.rating %}
+                        ⭐ {{ book.rating }}/5
+                    {% else %}
+                        Not rated
+                    {% endif %}
+                </span>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <strong>Published date:</strong>
+                <span style="margin-left:8px;">
+                    {{ book.published_date }}
+                </span>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <strong>Read date:</strong>
+                <span style="margin-left:8px;">
+                    {% if book.read_date %}
+                        {{ book.read_date }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </div>
+
+        </div>
+
+        <!-- Cover -->
+        <div style="text-align:center;">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}"
+                     alt="{{ book.title }}"
+                     style="width:100%; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.1);">
+            {% else %}
+                <div style="
+                    width:100%;
+                    height:300px;
+                    background:#f3f4f6;
+                    border-radius:12px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    color:#9ca3af;
+                    font-size:14px;">
+                    No cover image
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div style="margin-top:40px; display:flex; gap:10px;">
+
+        <a href="{% url 'bookapp:book_list' %}"
+           class="btn btn-secondary">
+            Back to list
+        </a>
+
+        {% if perms.bookapp.change_book %}
+            <a href="{% url 'bookapp:book_edit' book.id %}"
+               class="btn btn-primary">
+                Edit
+            </a>
+        {% endif %}
+
+        {% if perms.bookapp.delete_book %}
+            <a href="{% url 'bookapp:book_delete' book.id %}"
+               class="btn btn-danger">
+                Delete
+            </a>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
